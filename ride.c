@@ -110,7 +110,7 @@ int main() {
     }
 
     // Sleep for a sufficient number of iterations (manually terminate the program)
-    sleep(10);
+    sleep(1000);
 
     // Terminate threads
     pthread_cancel(car_thread);
