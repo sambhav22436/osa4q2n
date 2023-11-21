@@ -19,7 +19,7 @@ void offboard(int id);
 void load() {
     sem_wait(&car_mutex);
     printf("Car is loading passengers...\n");
-    sleep(10); // Simulating loading time
+    sleep(1); // Simulating loading time
     sem_post(&passenger_mutex);
     sem_wait(&all_boarded_mutex); // Wait for all passengers to board
     sem_post(&car_mutex);
@@ -28,7 +28,7 @@ void load() {
 void unload() {
     sem_wait(&car_mutex);
     printf("Car is unloading passengers...\n");
-    sleep(10); // Simulating unloading time
+    sleep(1); // Simulating unloading time
     sem_post(&all_unboarded_mutex); // Signal that all passengers have unboarded
     sem_post(&car_mutex);
 }
@@ -72,11 +72,13 @@ void* passenger(void* args) {
     while (1) {
         board(id);
         if (++passengers_boarded == car_capacity) {
-            sem_wait(&all_boarded_mutex); // Wait until all passengers have boarded
+            sem_post(&all_boarded_mutex); // Signal that all passengers have boarded
+            sem_wait(&all_unboarded_mutex); // Wait until all passengers have unboarded
         }
         offboard(id);
         if (++passengers_unboarded == car_capacity) {
-            sem_wait(&all_unboarded_mutex); // Wait until all passengers have unboarded
+            sem_post(&all_unboarded_mutex); // Signal that passenger has unboarded
+            sem_wait(&all_boarded_mutex); // Wait until all passengers have boarded
         }
     }
     return NULL;
@@ -123,6 +125,7 @@ int main() {
 
     return 0;
 }
+
 
 
 
