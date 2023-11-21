@@ -43,7 +43,6 @@ void board(int id) {
     }
     sem_post(&passenger_mutex);
     sem_post(&board_mutex);
-    sleep(1); // Introduce a delay between each boarding action
 }
 
 void offboard(int id) {
@@ -56,7 +55,6 @@ void offboard(int id) {
     }
     sem_post(&passenger_mutex);
     sem_post(&offboard_mutex);
-    sleep(1); // Introduce a delay between each unboarding action
 }
 
 void* car(void* args) {
