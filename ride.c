@@ -64,7 +64,7 @@ void* car(void* args) {
     while (1) {
         load();
         unload();
-        sem_post(&all_boarded_mutex); // Reset for the next ride
+        passengers_boarded = 0; // Reset for the next ride
     }
     return NULL;
 }
@@ -74,6 +74,9 @@ void* passenger(void* args) {
     while (1) {
         board(id);
         offboard(id);
+        if (++passengers_boarded == total_passengers) {
+            sem_post(&all_boarded_mutex); // Signal that all passengers have boarded
+        }
     }
     return NULL;
 }
