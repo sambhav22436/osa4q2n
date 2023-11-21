@@ -65,6 +65,7 @@ void* car(void* args) {
         load();
         unload();
         passengers_boarded = 0; // Reset for the next ride
+        sleep(1); // Introduce a delay between rides
     }
     return NULL;
 }
@@ -78,6 +79,7 @@ void* passenger(void* args) {
         }
         offboard(id);
         sem_post(&all_boarded_mutex); // Signal that passenger has unboarded
+        sleep(1); // Introduce a delay between boarding and unboarding
     }
     return NULL;
 }
@@ -121,6 +123,7 @@ int main() {
 
     return 0;
 }
+
 
 
 
