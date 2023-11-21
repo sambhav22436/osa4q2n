@@ -6,8 +6,8 @@
 
 #define MAX_PASSENGERS 10
 
-sem_t car_mutex, passenger_mutex, board_mutex, offboard_mutex;
-int passenger_count = 0, total_passengers, car_capacity;
+sem_t car_mutex, passenger_mutex, board_mutex, offboard_mutex, all_boarded_mutex;
+int passenger_count = 0, total_passengers, car_capacity, passengers_boarded = 0;
 
 void* car(void* args);
 void* passenger(void* args);
@@ -21,6 +21,7 @@ void load() {
     printf("Car is loading passengers...\n");
     sleep(1); // Simulating loading time
     sem_post(&passenger_mutex);
+    sem_wait(&all_boarded_mutex); // Wait for all passengers to board
     sem_post(&car_mutex);
 }
 
@@ -38,7 +39,7 @@ void board(int id) {
         printf("Passenger %d is boarding the car.\n", id);
         passenger_count++;
         if (passenger_count == car_capacity) {
-            sem_post(&car_mutex); // Signal car to start
+            sem_post(&all_boarded_mutex); // Signal car to start
         }
     }
     sem_post(&passenger_mutex);
@@ -63,6 +64,7 @@ void* car(void* args) {
     while (1) {
         load();
         unload();
+        sem_post(&all_boarded_mutex); // Reset for the next ride
     }
     return NULL;
 }
@@ -84,6 +86,7 @@ int main() {
     sem_init(&passenger_mutex, 0, 0);
     sem_init(&board_mutex, 0, 1);
     sem_init(&offboard_mutex, 0, 1);
+    sem_init(&all_boarded_mutex, 0, 0);
 
     printf("Enter the car capacity: ");
     scanf("%d", &car_capacity);
@@ -110,6 +113,8 @@ int main() {
     sem_destroy(&passenger_mutex);
     sem_destroy(&board_mutex);
     sem_destroy(&offboard_mutex);
+    sem_destroy(&all_boarded_mutex);
 
     return 0;
 }
+
