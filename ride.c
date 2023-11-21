@@ -60,6 +60,7 @@ void offboard(int id) {
 void* car(void* args) {
     while (1) {
         load();
+        sem_wait(&all_unboarded_mutex); // Wait for all passengers to unboard
         unload();
         passengers_boarded = 0; // Reset for the next ride
         passengers_unboarded = 0; // Reset for the next ride
