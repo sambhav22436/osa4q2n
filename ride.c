@@ -6,8 +6,8 @@
 
 #define MAX_PASSENGERS 10
 
-sem_t car_mutex, passenger_mutex, board_mutex, offboard_mutex, all_boarded_mutex;
-int passenger_count = 0, total_passengers, car_capacity, passengers_boarded = 0;
+sem_t car_mutex, passenger_mutex, board_mutex, offboard_mutex, all_boarded_mutex, all_unboarded_mutex;
+int passenger_count = 0, total_passengers, car_capacity, passengers_boarded = 0, passengers_unboarded = 0;
 
 void* car(void* args);
 void* passenger(void* args);
@@ -29,6 +29,7 @@ void unload() {
     sem_wait(&car_mutex);
     printf("Car is unloading passengers...\n");
     sleep(1); // Simulating unloading time
+    sem_post(&all_unboarded_mutex); // Signal that all passengers have unboarded
     sem_post(&car_mutex);
 }
 
@@ -53,7 +54,7 @@ void offboard(int id) {
         printf("Passenger %d is getting off the car.\n", id);
         passenger_count--;
         if (passenger_count == 0) {
-            sem_post(&car_mutex); // Signal car to unload
+            sem_post(&all_unboarded_mutex); // Signal car to unload
         }
     }
     sem_post(&passenger_mutex);
@@ -65,6 +66,7 @@ void* car(void* args) {
         load();
         unload();
         passengers_boarded = 0; // Reset for the next ride
+        passengers_unboarded = 0; // Reset for the next ride
     }
     return NULL;
 }
@@ -73,9 +75,12 @@ void* passenger(void* args) {
     int id = *((int*)args);
     while (1) {
         board(id);
+        if (++passengers_boarded == car_capacity) {
+            sem_wait(&all_boarded_mutex); // Wait until all passengers have boarded
+        }
         offboard(id);
-        if (++passengers_boarded == total_passengers) {
-            sem_post(&all_boarded_mutex); // Signal that all passengers have boarded
+        if (++passengers_unboarded == car_capacity) {
+            sem_wait(&all_unboarded_mutex); // Wait until all passengers have unboarded
         }
     }
     return NULL;
@@ -90,6 +95,7 @@ int main() {
     sem_init(&board_mutex, 0, 1);
     sem_init(&offboard_mutex, 0, 1);
     sem_init(&all_boarded_mutex, 0, 0);
+    sem_init(&all_unboarded_mutex, 0, 0);
 
     printf("Enter the car capacity: ");
     scanf("%d", &car_capacity);
@@ -117,7 +123,9 @@ int main() {
     sem_destroy(&board_mutex);
     sem_destroy(&offboard_mutex);
     sem_destroy(&all_boarded_mutex);
+    sem_destroy(&all_unboarded_mutex);
 
     return 0;
 }
+
 
