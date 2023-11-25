@@ -19,7 +19,7 @@ void offboard(int id);
 void load() {
     sem_wait(&car_mutex);
     printf("Car is loading passengers...\n");
-    sleep(1); // Simulating loading time
+    sleep(rand() % 3 + 1); // Simulating loading time
     sem_post(&passenger_mutex);
     sem_wait(&all_boarded_mutex); // Wait for all passengers to board
     sem_post(&car_mutex);
@@ -28,7 +28,7 @@ void load() {
 void unload() {
     sem_wait(&car_mutex);
     printf("Car is unloading passengers...\n");
-    sleep(1); // Simulating unloading time
+    sleep(rand() % 3 + 1); // Simulating unloading time
     sem_post(&all_unboarded_mutex); // Signal that all passengers have unboarded
     sem_post(&car_mutex);
 }
